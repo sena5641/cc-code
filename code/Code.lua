@@ -38,7 +38,15 @@ local on = {}
 ---@param code Code
 ---@param char string
 function on.char(code, char)
-  code._editor:insert(char)
+  if char == "." then
+    code._editor:insert(char)
+    code._editor:showCompletion()
+  else
+    code._editor:insert(char)
+    if code._editor._completionVisible then
+      code._editor:updateCompletion()
+    end
+  end
   return true
 end
 
@@ -47,6 +55,26 @@ end
 ---@param key integer
 ---@param _held boolean
 function on.key(code, key, _held)
+  if code._editor._completionVisible then
+    if key == keys.up then
+      code._editor._completionSelected = math.max(1, code._editor._completionSelected - 1)
+      return true
+    elseif key == keys.down then
+      code._editor._completionSelected = math.min(#code._editor._completionItems, code._editor._completionSelected + 1)
+      return true
+    elseif key == keys.enter or key == keys.tab then
+      local selected = code._editor._completionItems[code._editor._completionSelected]
+      if selected then
+        code._editor:insert(selected.label)
+        code._editor._completionVisible = false
+      end
+      return true
+    elseif key == keys.escape then
+      code._editor._completionVisible = false
+      return true
+    end
+  end
+
   if key == keys.leftCtrl or key == keys.rightCtrl then
     code._modifierKeys.ctrl = true
   elseif key == keys.leftShift or key == keys.rightShift then

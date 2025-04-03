@@ -1,6 +1,7 @@
-local Highlighter = require "code.Highlighter"
-local lexLua      = require "code.lexers.lexLua"
-local table       = require "code.polyfill.table"
+local Highlighter    = require "code.Highlighter"
+local lexLua        = require "code.lexers.lexLua"
+local table         = require "code.polyfill.table"
+local ApiCompletion = require "code.autocomplete.api"
 
 ---@class Point
 ---@field x integer
@@ -82,6 +83,11 @@ function Editor:new()
   self._savedRevision = 0
   self._historyGroupNesting = 0
   self._historyGroupRevision = nil
+  
+  self._completion = ApiCompletion()
+  self._completionItems = {}
+  self._completionVisible = false
+  self._completionSelected = 1
 
   -- TODO: make dynamic
   self._highlighter = Highlighter(require "code.highlighter.vscode")
@@ -646,6 +652,27 @@ function Editor:getBlitLine(line)
       makeBlit(background, colors.toBlit(colors.black), colors.toBlit(colors.gray))
 end
 
+---Shows the completion popup at the current cursor position
+function Editor:showCompletion()
+  local x, y = self:getCursor()
+  local line = self._lines.text[y]
+  self._completionItems = self._completion:getCompletions(line, x)
+  if #self._completionItems > 0 then
+    self._completionVisible = true
+    self._completionSelected = 1
+  end
+end
+
+---Updates the completion items based on current context
+function Editor:updateCompletion()
+  local x, y = self:getCursor()
+  local line = self._lines.text[y]
+  self._completionItems = self._completion:getCompletions(line, x)
+  if #self._completionItems == 0 then
+    self._completionVisible = false
+  end
+end
+
 ---Renders all currently visible lines.
 function Editor:render()
   local _width, height = term.getSize()
@@ -658,6 +685,63 @@ function Editor:render()
       term.setBackgroundColor(colors.gray)
       term.clearLine()
     end
+  end
+  
+  if self._completionVisible then
+    self:renderCompletion()
+  end
+end
+
+---Renders the completion popup
+function Editor:renderCompletion()
+  local x, y = self:getCursor()
+  local screenX, screenY = self:clientToScreen(x, y)
+  local width, height = term.getSize()
+  
+  -- Calculate popup dimensions and position
+  local popupWidth = 0
+  for _, item in ipairs(self._completionItems) do
+    popupWidth = math.max(popupWidth, #item.label + (item.detail and #item.detail + 1 or 0))
+  end
+  popupWidth = math.min(popupWidth + 2, width - screenX)
+  
+  local popupHeight = math.min(#self._completionItems, 10)
+  local popupX = screenX
+  local popupY = screenY + 1
+  
+  if popupY + popupHeight > height then
+    popupY = screenY - popupHeight
+  end
+  
+  -- Draw popup background
+  term.setBackgroundColor(colors.gray)
+  for i = 1, popupHeight do
+    term.setCursorPos(popupX, popupY + i - 1)
+    term.write((" "):rep(popupWidth))
+  end
+  
+  -- Draw items
+  for i = 1, popupHeight do
+    local item = self._completionItems[i]
+    if not item then break end
+    
+    term.setCursorPos(popupX + 1, popupY + i - 1)
+    if i == self._completionSelected then
+      term.setBackgroundColor(colors.blue)
+      term.setTextColor(colors.white)
+    else
+      term.setBackgroundColor(colors.gray)
+      term.setTextColor(colors.white)
+    end
+    
+    local text = item.label
+    if item.detail then
+      text = text .. " " .. item.detail
+    end
+    if #text > popupWidth - 2 then
+      text = text:sub(1, popupWidth - 5) .. "..."
+    end
+    term.write(text)
   end
 end
 
