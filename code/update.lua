@@ -35,19 +35,23 @@ local function downloadUpdate(dir)
     end
   end
 
-  local GITHUB_POSSSEIDON = "https://raw.githubusercontent.com/Possseidon/"
+  local GITHUB_URL = "https://raw.githubusercontent.com/sena5641/cc-code/"
 
-  addRequests(GITHUB_POSSSEIDON .. "cc-code/main", "", {
+  addRequests(GITHUB_URL .. "main", "", {
     "code/highlighter/vscode.lua",
-    "code/polyfill/table.lua",
+    "code/polyfill/table.lua", 
     "code/class.lua",
     "code/Code.lua",
     "code/Editor.lua",
     "code/Highlighter.lua",
     "code.lua",
+    "code/ui/explorer.lua",
+    "code/ui/settings.lua", 
+    "code/ui/help.lua",
+    "code/ui/menus.lua"
   })
 
-  addRequests(GITHUB_POSSSEIDON .. "lua-lexers/main", "code/lexers", {
+  addRequests(GITHUB_URL .. "main/code/lexers", "code/lexers", {
     "lexLua.lua",
   })
 

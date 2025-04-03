@@ -474,24 +474,27 @@ function Editor:makeCursorVisible()
       self._cursor.y - height + self._visibleLines.below))
 end
 
----Moves the cursor to the given position, possibly dragging along a selection.
----@param x integer?
----@param y integer?
----@param select boolean?
+---Sets the cursor position while keeping it at the end of line
 function Editor:setCursor(x, y, select)
-  local anchorPoint
-  if select then
-    anchorPoint = self._selection
-        and selectionAnchorPoint(self._selection)
-        or { x = self._cursor.x, y = self._cursor.y }
+  if y then
+    y = math.min(math.max(1, y), #self._lines.text)
+    if x then
+      x = math.min(math.max(1, x), #self._lines.text[y] + 1)
+    end
   end
-  self._cursor.x = math.max(1, x or self._cursor.x)
-  self._cursor.y = math.min(math.max(1, y or self._cursor.y), #self._lines.text)
-  if anchorPoint then
-    self:select(anchorPoint, self._cursor)
+  
+  self._cursor.x = x or self._cursor.x
+  self._cursor.y = y or self._cursor.y
+  
+  if select then
+    self:select(self._selection and selectionAnchorPoint(self._selection) or
+      {x = self._cursor.x, y = self._cursor.y}, self._cursor)
   else
     self._selection = nil
   end
+  
+  -- Close completion when moving cursor
+  self._completionVisible = false
 end
 
 ---Moves the cursor by the given amount, possibly dragging along a selection.
@@ -522,6 +525,24 @@ end
 ---Notifies the editor that a mouse button was released, signifying the end of a drag/selection.
 function Editor:release()
   self._mouseDown = false
+end
+
+---Handle mouse input for completion
+function Editor:handleMouse(event, button, x, y)
+  if self._completionVisible then
+    if event == "mouse_click" then
+      local popupY = self._cursor.y + 1
+      if y >= popupY and y < popupY + #self._completionItems then
+        self._completionSelected = y - popupY + 1
+        local item = self._completionItems[self._completionSelected]
+        if item then
+          self:insert(item.label)
+          self._completionVisible = false
+        end
+        return true
+      end
+    end
+  end
 end
 
 ---Selects everything from the given anchor point to the other point.
