@@ -48,7 +48,8 @@ local function downloadUpdate(dir)
     "code/ui/explorer.lua",
     "code/ui/settings.lua", 
     "code/ui/help.lua",
-    "code/ui/menus.lua"
+    "code/ui/menus.lua",
+    "code/lexers/lexLua.lua" -- Ensure lexLua.lua is included here
   })
 
   addRequests(GITHUB_URL .. "main/code/lexers", "code/lexers", {

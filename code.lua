@@ -162,6 +162,11 @@ local function run(args)
 
   local code = require "code.Code" (filename)
 
+  local success, lexLua = pcall(require, "code.lexers.lexLua")
+  if not success then
+    error("Module 'code.lexers.lexLua' not found. Ensure it is downloaded correctly.")
+  end
+
   if args.line then
     code._editor:setCursor(1, args.line)
     code._editor:makeCursorVisible()
