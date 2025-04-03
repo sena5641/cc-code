@@ -410,10 +410,9 @@ function Code:registerDefaultShortcuts()
   self:registerScript("ctrl+d", "code:save()")
   self:registerScript("ctrl+shift?+f4", "code:quit(shift)")
   self:registerScript("f5", "code:runFile()")
-
-  -- Using shortcuts to switch tabs doesn't work because of modifier keys.
-  -- Modifier keys would need to be stored globally e.g. in a file.
-  -- self:registerScript("ctrl+shift?+tab", "code:switchTab(shift)")
+  -- Добавляем новые горячие клавиши:
+  self:registerScript("f8", "editor:toggleCompletion()")
+  self:registerScript("f12", "code:showHelp()")
 end
 
 function Code:runFile()
@@ -427,6 +426,55 @@ function Code:runFile()
     term.setCursorPos(1, 1)
     shell.run(self._filename)
   end
+end
+
+---Отображает справочное меню
+function Code:showHelp()
+  local oldTextColor = term.getTextColor()
+  local oldBgColor = term.getBackgroundColor()
+  term.setBackgroundColor(colors.gray)
+  term.clear()
+  term.setCursorPos(1,1)
+  term.setTextColor(colors.white)
+  print("=== Справка по cc-code ===")
+  print("")
+  print("F8  - Вкл/Выкл автодополнение")
+  print("F12 - Справка")
+  print("--settings - Открыть меню с настройками")
+  print("--update   - Обновить cc-code")
+  print("--version  - Показать версию")
+  print("ctrl+D   - Сохранить файл")
+  print("ctrl+S   - Выключить компьютер (у ComputerCraft)")
+  print("")
+  print("Нажмите любую клавишу для возврата...")
+  os.pullEvent("key")
+  term.setBackgroundColor(oldBgColor)
+  term.setTextColor(oldTextColor)
+  term.clear()
+  self:render()
+end
+
+---Отображает текущее меню настроек
+function Code:showSettings()
+  local oldTextColor = term.getTextColor()
+  local oldBgColor = term.getBackgroundColor()
+  term.setBackgroundColor(colors.blue)
+  term.clear()
+  term.setCursorPos(1,1)
+  term.setTextColor(colors.white)
+  print("=== Настройки cc-code ===")
+  print("")
+  for k,v in pairs(self._config) do
+    print(k .. " = " .. tostring(v))
+  end
+  print("")
+  print("Для изменения настроек отредактируйте файл '/.code'")
+  print("Нажмите любую клавишу для возврата...")
+  os.pullEvent("key")
+  term.setBackgroundColor(oldBgColor)
+  term.setTextColor(oldTextColor)
+  term.clear()
+  self:render()
 end
 
 ---Switches to the next (or previous) multishell tab.

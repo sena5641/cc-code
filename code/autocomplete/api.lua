@@ -22,7 +22,9 @@ local luaApis = {
     { label = "rep", kind = "function", detail = "string.rep(s, n [, sep])", documentation = "Returns a string that is the concatenation of n copies of the string s separated by the string sep" },
     { label = "reverse", kind = "function", detail = "string.reverse(s)", documentation = "Returns a string that is the string s reversed" },
     { label = "sub", kind = "function", detail = "string.sub(s, i [, j])", documentation = "Returns the substring of s that starts at i and continues until j" },
-    { label = "upper", kind = "function", detail = "string.upper(s)", documentation = "Returns a copy of the string with all lowercase letters changed to uppercase" }
+    { label = "upper", kind = "function", detail = "string.upper(s)", documentation = "Returns a copy of the string with all lowercase letters changed to uppercase" },
+    { label = "pack", kind = "function", detail = "string.pack(fmt, ...)", documentation = "Упаковка данных в бинарную строку" },
+    { label = "unpack", kind = "function", detail = "string.unpack(fmt, s, [pos])", documentation = "Распаковка бинарной строки" }
   },
   table = {
     { label = "concat", kind = "function", detail = "table.concat(list [, sep [, i [, j]]])", documentation = "Returns list[i]..sep..list[i+1] ··· sep..list[j]" },
@@ -88,6 +90,14 @@ local luaApis = {
     { label = "path", kind = "variable", detail = "package.path", documentation = "The path used by require to search for Lua files" },
     { label = "cpath", kind = "variable", detail = "package.cpath", documentation = "The path used by require to search for C libraries" }
   },
+  bit32 = {
+    { label = "band", kind = "function", detail = "bit32.band(...)", documentation = "Побитовое И" },
+    { label = "bor", kind = "function", detail = "bit32.bor(...)", documentation = "Побитовое ИЛИ" },
+    { label = "bxor", kind = "function", detail = "bit32.bxor(...)", documentation = "Побитовое исключающее ИЛИ" },
+    { label = "bnot", kind = "function", detail = "bit32.bnot(x)", documentation = "Побитовое НЕ" },
+    { label = "lshift", kind = "function", detail = "bit32.lshift(x, n)", documentation = "Побитовый сдвиг влево" },
+    { label = "rshift", kind = "function", detail = "bit32.rshift(x, n)", documentation = "Побитовый сдвиг вправо" }
+  },
   keywords = {
     { label = "and", kind = "keyword", detail = "Lua keyword", documentation = "Logical AND operator" },
     { label = "break", kind = "keyword", detail = "Lua keyword", documentation = "Breaks out of a loop" },
@@ -99,7 +109,7 @@ local luaApis = {
     { label = "for", kind = "keyword", detail = "Lua keyword", documentation = "Starts a for loop" },
     { label = "function", kind = "keyword", detail = "Lua keyword", documentation = "Defines a function" },
     { label = "if", kind = "keyword", detail = "Lua keyword", documentation = "Starts an if statement" },
-    { label = "in", kind = "keyword", detail = "Lua keyword", documentation = "Used in for loops" },
+    { label = "in", kind = "keyword", documentation = "Used in for loops" },
     { label = "local", kind = "keyword", detail = "Lua keyword", documentation = "Declares a local variable" },
     { label = "nil", kind = "keyword", detail = "Lua keyword", documentation = "Represents a nil value" },
     { label = "not", kind = "keyword", detail = "Lua keyword", documentation = "Logical NOT operator" },
@@ -109,7 +119,7 @@ local luaApis = {
     { label = "then", kind = "keyword", detail = "Lua keyword", documentation = "Specifies the then branch of an if statement" },
     { label = "true", kind = "keyword", detail = "Lua keyword", documentation = "Boolean true value" },
     { label = "until", kind = "keyword", detail = "Lua keyword", documentation = "Ends a repeat-until loop" },
-    { label = "while", kind = "keyword", detail = "Lua keyword", documentation = "Starts a while loop" }
+    { label = "while", kind = "keyword", documentation = "Starts a while loop" }
   }
 }
 
@@ -143,7 +153,8 @@ local ccApis = {
     { label = "getInput", kind = "function", detail = "redstone.getInput(side)", documentation = "Gets the redstone input from the specified side" },
     { label = "setOutput", kind = "function", detail = "redstone.setOutput(side, boolean)", documentation = "Sets the redstone output for the specified side" },
     { label = "getAnalogInput", kind = "function", detail = "redstone.getAnalogInput(side)", documentation = "Gets the analog redstone input from the specified side" },
-    { label = "setAnalogOutput", kind = "function", detail = "redstone.setAnalogOutput(side, value)", documentation = "Sets the analog redstone output for the specified side" }
+    { label = "setAnalogOutput", kind = "function", detail = "redstone.setAnalogOutput(side, value)", documentation = "Sets the analog redstone output for the specified side" },
+    { label = "getComparatorInput", kind = "function", detail = "redstone.getComparatorInput(side)", documentation = "Получает аналоговый сигнал от компаратора" }
   },
   colors = {
     { label = "white", kind = "variable", detail = "colors.white", documentation = "The color white (0x1)" },
@@ -184,7 +195,42 @@ local ccApis = {
     { label = "place", kind = "function", detail = "turtle.place()", documentation = "Places a block in front of the turtle" },
     { label = "attack", kind = "function", detail = "turtle.attack()", documentation = "Attacks the entity in front of the turtle" },
     { label = "suck", kind = "function", detail = "turtle.suck()", documentation = "Sucks items from the inventory in front of the turtle" },
-    { label = "drop", kind = "function", detail = "turtle.drop()", documentation = "Drops items from the turtle's inventory" }
+    { label = "drop", kind = "function", detail = "turtle.drop()", documentation = "Drops items from the turtle's inventory" },
+    { label = "getItemCount", kind = "function", detail = "turtle.getItemCount([slot])", documentation = "Возвращает количество предметов в слоте" },
+    { label = "select", kind = "function", detail = "turtle.select(slot)", documentation = "Выбирает указанный слот" },
+    { label = "equipLeft", kind = "function", detail = "turtle.equipLeft()", documentation = "Экипирует предмет из слота в левую руку" }
+  },
+  modem = {
+    { label = "open", kind = "function", detail = "modem.open(port)", documentation = "Открывает порт для прослушивания" },
+    { label = "close", kind = "function", detail = "modem.close([port])", documentation = "Закрывает порт" },
+    { label = "send", kind = "function", detail = "modem.send(address, port, ...)", documentation = "Отправляет данные на указанный адрес" },
+    { label = "isWireless", kind = "function", detail = "modem.isWireless()", documentation = "Проверяет, является ли модем беспроводным" }
+  },
+  disk = {
+    { label = "isPresent", kind = "function", detail = "disk.isPresent([drive])", documentation = "Проверяет наличие диска в дисководе" },
+    { label = "getMountPath", kind = "function", detail = "disk.getMountPath([drive])", documentation = "Возвращает путь монтирования диска" }
+  },
+  gps = {
+    { label = "locate", kind = "function", detail = "gps.locate([timeout])", documentation = "Определяет координаты устройства" }
+  },
+  printer = {
+    { label = "newPage", kind = "function", detail = "printer.newPage()", documentation = "Создает новую страницу" },
+    { label = "write", kind = "function", detail = "printer.write(text)", documentation = "Печатает текст" },
+    { label = "endPage", kind = "function", detail = "printer.endPage()", documentation = "Завершает текущую страницу" }
+  },
+  global = {
+    {
+      label = "settings",
+      kind = "function",
+      detail = "settings.get(key) / settings.set(key, value)",
+      documentation = "Работа с настройками из .settings файла"
+    },
+    {
+      label = "parallel",
+      kind = "namespace",
+      detail = "parallel (CC API)",
+      documentation = "Запуск нескольких корутин параллельно"
+    }
   }
 }
 
@@ -203,29 +249,32 @@ function ApiCompletion:getCompletions(line, pos)
   local prefix = line:sub(1, pos)
   local dotMatch = prefix:match("([%w_]+)%.$")
   
-  if (dotMatch) then
-    -- API object completion (e.g. "string.")
+  if dotMatch then
     local items = self._apis.lua[dotMatch] or self._apis.cc[dotMatch]
     return items or {}
   end
   
-  -- Global API completion
+  local globalPrefix = prefix:match("([%w_]*)$")
   local items = {}
   for api, _ in pairs(self._apis.lua) do
-    table.insert(items, {
-      label = api,
-      kind = "namespace",
-      detail = api .. " (Lua API)",
-      documentation = "Lua " .. api .. " standard library"
-    })
+    if api:find("^" .. globalPrefix) then
+      table.insert(items, {
+        label = api,
+        kind = "namespace",
+        detail = api .. " (Lua API)",
+        documentation = "Lua " .. api .. " standard library"
+      })
+    end
   end
   for api, _ in pairs(self._apis.cc) do
-    table.insert(items, {
-      label = api,
-      kind = "namespace", 
-      detail = api .. " (CC API)",
-      documentation = "ComputerCraft " .. api .. " API"
-    })
+    if api:find("^" .. globalPrefix) then
+      table.insert(items, {
+        label = api,
+        kind = "namespace",
+        detail = api .. " (CC API)",
+        documentation = "ComputerCraft " .. api .. " API"
+      })
+    end
   end
   return items
 end

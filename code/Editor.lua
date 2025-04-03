@@ -88,6 +88,7 @@ function Editor:new()
   self._completionItems = {}
   self._completionVisible = false
   self._completionSelected = 1
+  self._completionEnabled = true  -- добавлено свойство для автодополнения
 
   -- TODO: make dynamic
   self._highlighter = Highlighter(require "code.highlighter.vscode")
@@ -97,6 +98,13 @@ function Editor:new()
   self._visibleLines = { above = 3, below = 1 }
   self._lineNumberWidth = 3
   self._tabWidth = 2
+end
+
+---Переключает автодополнение
+function Editor:toggleCompletion()
+  self._completionEnabled = not self._completionEnabled
+  self._completionVisible = false
+  self:pushToast("Autocompletion " .. (self._completionEnabled and "Enabled" or "Disabled"), "warning")
 end
 
 ---Whether the editor matches the last call to markSaved.
@@ -654,6 +662,7 @@ end
 
 ---Shows the completion popup at the current cursor position
 function Editor:showCompletion()
+  if not self._completionEnabled then return end
   local x, y = self:getCursor()
   local line = self._lines.text[y]
   self._completionItems = self._completion:getCompletions(line, x)
@@ -665,6 +674,7 @@ end
 
 ---Updates the completion items based on current context
 function Editor:updateCompletion()
+  if not self._completionEnabled then return end
   local x, y = self:getCursor()
   local line = self._lines.text[y]
   self._completionItems = self._completion:getCompletions(line, x)
