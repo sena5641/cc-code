@@ -23,7 +23,7 @@ A code editor for ComputerCraft.
 To install, run the following command:
 
 ```sh
-wget run https://raw.githubusercontent.com/Possseidon/cc-code/main/code/update.lua
+wget run https://raw.githubusercontent.com/sena5641/cc-code/main/code/update.lua
 ```
 
 ### Start
